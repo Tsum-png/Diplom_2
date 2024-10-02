@@ -23,8 +23,8 @@ public class CreateUserTest {
     }
 
     @Test
-    public void createUserSuccessfully() {
-        CreateUser user = new CreateUser("qei123@mail.ru", "123416", "Сглыпа");
+    public void testCreateUserSuccessfully() {
+        CreateUser user = new CreateUser("qeqp923@mail.ru", "123416", "Сглыпа");
         ValidatableResponse response = given()
                 .contentType("application/json")
                 .body(user)
@@ -37,8 +37,8 @@ public class CreateUserTest {
     }
 
     @Test
-    public void createExistingUser() {
-        CreateUser user = new CreateUser("wei123@mail.ru", "123416", "Сглыпа");
+    public void testCreateExistingUser() {
+        CreateUser user = new CreateUser("wtft123@mail.ru", "123416", "Сглыпа");
         ValidatableResponse response = given()
                 .contentType("application/json")
                 .body(user)
@@ -48,6 +48,7 @@ public class CreateUserTest {
                 .statusCode(200)
                 .assertThat().body("success", is(true));
         accessToken = response.extract().path("accessToken");
+
         given()
                 .contentType("application/json")
                 .body(user)
@@ -57,15 +58,58 @@ public class CreateUserTest {
                 .statusCode(403)
                 .assertThat().body("success", is(false));
     }
+    @Test
+    public void testCreateUserWithoutName() {
+        CreateUser user = new CreateUser("qei123@mail.ru", "123416", "");
+        ValidatableResponse response = given()
+                .contentType("application/json")
+                .body(user)
+                .when()
+                .post(CREATE_USER)
+                .then()
+                .statusCode(403)
+                .assertThat().body("success", is(false));
+        accessToken = response.extract().path("accessToken");
+    }
 
-   // @After
-    //public void deleteUser() {
-      //  if (accessToken != null){
-      //  given()
-         //       .contentType("application/json")
-         //       .header("authorization", accessToken)
-            //    .when()
-            //    .post(DELETE_USER);
-  //  }
-       // }
+    @Test
+    public void testCreateUserWithoutEmail() {
+        CreateUser user = new CreateUser("", "123416", "Сглыпа");
+        ValidatableResponse response = given()
+                .contentType("application/json")
+                .body(user)
+                .when()
+                .post(CREATE_USER)
+                .then()
+                .statusCode(403)
+                .assertThat().body("success", is(false));
+        accessToken = response.extract().path("accessToken");
+    }
+
+    @Test
+    public void testCreateUserWithoutPassword() {
+        CreateUser user = new CreateUser("qei123@mail.ru", "", "Сглыпа");
+        ValidatableResponse response = given()
+                .contentType("application/json")
+                .body(user)
+                .when()
+                .post(CREATE_USER)
+                .then()
+                .statusCode(403)
+                .assertThat().body("success", is(false));
+        accessToken = response.extract().path("accessToken");
+    }
+   @After
+    public void deleteUser() {
+        if (accessToken != null){
+            given()
+                    .contentType("application/json")
+                    .header("Authorization", accessToken)
+                    .header("Accept", "*/*")
+                    .when()
+                    .delete(DELETE_USER)
+                    .then()
+                    .statusCode(202);
+    }
+        }
 }
