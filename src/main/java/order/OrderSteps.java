@@ -45,7 +45,7 @@ public class OrderSteps {
                 .statusCode(expectedStatusCode)
                 .assertThat().body("success", is(isSuccessExpected));
     }
-    @Step("Получение заказа пользователя c авторизацией")
+    @Step("Получение заказа пользователя без авторизации")
     public ValidatableResponse getOrderWithoutLogIn(int expectedStatusCode, boolean isSuccessExpected) {
         return given()
                 .contentType("application/json")
