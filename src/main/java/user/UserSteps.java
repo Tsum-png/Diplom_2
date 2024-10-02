@@ -7,7 +7,7 @@ import static endpoints.ApiEndpoints.*;
 
 public class UserSteps {
 
-    @Step("Создание пользователя {user}")
+    @Step("Создание пользователя")
     public ValidatableResponse createUser(CreateUser user, int expectedStatusCode, boolean isSuccessExpected) {
         ValidatableResponse response = given()
                 .contentType("application/json")
@@ -20,7 +20,7 @@ public class UserSteps {
         return response;
     }
 
-    @Step("Удаление пользователя с accessToken")
+    @Step("Удаление пользователя")
     public void deleteUser(String accessToken) {
         given()
                 .contentType("application/json")
@@ -32,7 +32,7 @@ public class UserSteps {
                 .statusCode(202);
     }
 
-    @Step("Логин пользователя ")
+    @Step("Логин пользователя")
     public ValidatableResponse loginUser(LoginUser loginUser, int expectedStatusCode, boolean isSuccessExpected) {
         ValidatableResponse response = given()
                 .contentType("application/json")
@@ -45,7 +45,7 @@ public class UserSteps {
         return response;
     }
 
-    @Step("Изменение пользователя ")
+    @Step("Изменение пользователя")
     public ValidatableResponse changeUser(ChangeUser changeUser, String accessToken, int expectedStatusCode, boolean isSuccessExpected) {
         return given()
                 .contentType("application/json")
@@ -58,7 +58,7 @@ public class UserSteps {
                 .statusCode(expectedStatusCode)
                 .assertThat().body("success", is(isSuccessExpected));
     }
-    @Step("Изменение пользователя без авторизации {user}")
+    @Step("Изменение пользователя без авторизации")
     public ValidatableResponse changeUserWithoutLogin(ChangeUser changeUser, int expectedStatusCode, boolean isSuccessExpected) {
         return given()
                 .contentType("application/json")
