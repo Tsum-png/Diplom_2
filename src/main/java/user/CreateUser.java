@@ -4,6 +4,7 @@ public class CreateUser {
     private String email;
     private String password;
     private String name;
+    private String accessToken;
 
     public CreateUser (String email, String password, String name) {
         this.email = email;
@@ -34,4 +35,5 @@ public class CreateUser {
     public void setName(String name) {
         this.name = name;
     }
+
 }

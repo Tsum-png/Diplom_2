@@ -3,135 +3,91 @@ package OrderTest;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import order.CreateOrder;
+import order.OrderSteps;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import user.CreateUser;
+import user.UserSteps;
 
 import java.util.List;
 
 import static endpoints.ApiEndpoints.*;
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
 
 public class CreateOrderTest {
+
+    private UserSteps userSteps = new UserSteps();
+    private OrderSteps orderSteps = new OrderSteps();
     private String accessToken;
+    String email = (RandomStringUtils.randomAlphabetic(7) + "@" + "yandex.ru");
+    String password = RandomStringUtils.randomAlphabetic(6);
+    String productHesh = "61c0c5a71d1f82001bdaaa6d";
+    String wrongHesh = "6059711abdacab1896a733c6";
 
     @Before
     public void setUp() {
         RestAssured.baseURI = BASE_URL;
     }
 
-    @Before
-    public void createUser() {
-        CreateUser user = new CreateUser("qiu123@mail.ru", "123416", "Сглыпа");
-        ValidatableResponse response = given()
-                .contentType("application/json")
-                .body(user)
-                .when()
-                .post(CREATE_USER)
-                .then()
-                .statusCode(200)
-                .assertThat().body("success", is(true));
-        accessToken = response.extract().path("accessToken");
-    }
-
     @Test
     public void testCreateOrderWithIngredientWithLogin() {
-        CreateOrder order = new CreateOrder(List.of("60d3b41abdacab0026a733c6"));
-        given()
-                .contentType("application/json")
-                .header("Authorization", accessToken)
-                .header("Accept", "*/*")
-                .and()
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(200)
-                .assertThat().body("success", is(true));
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(productHesh));
+        orderSteps.createOrder(order, accessToken, 200, true);
     }
 
     @Test
     public void testCreateOrderWithoutIngredientWithLogin() {
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
         CreateOrder order = new CreateOrder(List.of(""));
-        given()
-                .contentType("application/json")
-                .header("Authorization", accessToken)
-                .header("Accept", "*/*")
-                .and()
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(400)
-                .assertThat().body("success", is(false));
+        orderSteps.createOrder(order, accessToken, 400, false);
     }
 
     @Test
     public void testCreateOrderWithIngredientWithoutLogin() {
-        CreateOrder order = new CreateOrder(List.of("60d3b41abdacab0026a733c6"));
-        given()
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(400)
-                .assertThat().body("success", is(false));
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(productHesh));
+        orderSteps.createOrderWithoutLogin(order, 500);
     }
 
     @Test
     public void testCreateOrderWithoutIngredientWithoutLogin() {
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
         CreateOrder order = new CreateOrder(List.of(""));
-        given()
-                .contentType("application/json")
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(400)
-                .assertThat().body("success", is(false));
+        orderSteps.createOrderWithoutLogin(order,500);
     }
 
     @Test
     public void testCreateOrderWithWrongHeshWithLogin() {
-        CreateOrder order = new CreateOrder(List.of("6011111abdacab0026a733c6"));
-        given()
-                .contentType("application/json")
-                .header("Authorization", accessToken)
-                .header("Accept", "*/*")
-                .and()
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(500)
-                .assertThat().body("success", is(false));
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(wrongHesh));
+        orderSteps.createOrder(order, accessToken, 400, false);
     }
+
     @Test
     public void testCreateOrderWithWrongHeshWithoutLogin() {
-        CreateOrder order = new CreateOrder(List.of("6011111abdacab0026a733c6"));
-        given()
-                .contentType("application/json")
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(500)
-                .assertThat().body("success", is(false));
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(wrongHesh));
+        orderSteps.createOrderWithoutLogin(order, 500);
     }
 
     @After
     public void deleteUser() {
-        if (accessToken != null){
-            given()
-                    .contentType("application/json")
-                    .header("Authorization", accessToken)
-                    .header("Accept", "*/*")
-                    .when()
-                    .delete(DELETE_USER)
-                    .then()
-                    .statusCode(202);
+        if (accessToken != null) {
+            userSteps.deleteUser(accessToken);
         }
     }
 }

@@ -3,71 +3,55 @@ package OrderTest;
 import io.restassured.RestAssured;
 import io.restassured.response.ValidatableResponse;
 import order.CreateOrder;
+import order.OrderSteps;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import user.CreateUser;
+import user.UserSteps;
 
 import java.util.List;
 
 import static endpoints.ApiEndpoints.*;
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
 
 public class GetUserOrderTest {
+    private UserSteps userSteps = new UserSteps();
     private String accessToken;
+    private OrderSteps orderSteps = new OrderSteps();
+    String email = (RandomStringUtils.randomAlphabetic(7) + "@" + "yandex.ru");
+    String password = RandomStringUtils.randomAlphabetic(6);
+    String productHesh = "61c0c5a71d1f82001bdaaa6d";
 
     @Before
     public void setUp() {
         RestAssured.baseURI = BASE_URL;
     }
 
-    @Before
-    public void createUser() {
-        CreateUser user = new CreateUser("qiu123@mail.ru", "123416", "Сглыпа");
-        ValidatableResponse response = given()
-                .contentType("application/json")
-                .body(user)
-                .when()
-                .post(CREATE_USER)
-                .then()
-                .statusCode(200)
-                .assertThat().body("success", is(true));
-        accessToken = response.extract().path("accessToken");
-    }
     @After
     public void deleteUser() {
         if (accessToken != null) {
-            given()
-                    .contentType("application/json")
-                    .header("Authorization", accessToken)
-                    .header("Accept", "*/*")
-                    .when()
-                    .delete(DELETE_USER)
-                    .then()
-                    .statusCode(202);
+            userSteps.deleteUser(accessToken);
         }
     }
 
     @Test
-    public void testGetOneOrder() {
-        CreateOrder order = new CreateOrder(List.of("60d3b41abdacab0026a733c6"));
-        given()
-                .contentType("application/json")
-                .header("Authorization", accessToken)
-                .header("Accept", "*/*")
-                .and()
-                .body(order)
-                .when()
-                .post(CREATE_ORDER)
-                .then()
-                .statusCode(200)
-                .assertThat().body("success", is(true));
+    public void testGetOrderWithLogin() {
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(productHesh));
+        orderSteps.createOrder(order, accessToken, 200, true);
+        orderSteps.getOrder(accessToken, 200, true);
+    }
 
-        given()
-                .contentType("application/json")
-                .header("Authorization", accessToken)
-                .header("Accept", "*/*")
-                .and()
+    @Test
+    public void testGetOrderWithoutLogin() {
+        CreateUser user = new CreateUser(email, password, "Сглыпа");
+        ValidatableResponse response = userSteps.createUser(user, 200, true);
+        accessToken = response.extract().path("accessToken");
+        CreateOrder order = new CreateOrder(List.of(productHesh));
+        orderSteps.createOrder(order, accessToken, 200, true);
+        orderSteps.getOrderWithoutLogIn(401, false);
     }
 }
